@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="https://cdn.voximplant.com/edge/voximplant.min.js"></script>
+
+    <script type="text/javascript">
+        var initialized = false,
+            loggedIn = false,
+            connected = false,
+            voxImplant = VoxImplant.getInstance();
+        call = null;
+
+
+        // Add event listeners
+        voxImplant.addEventListener(VoxImplant.Events.SDKReady, handleSDKReady);
+        voxImplant.addEventListener(VoxImplant.Events.ConnectionEstablished, handleConnectionEstablished);
+        voxImplant.addEventListener(VoxImplant.Events.AuthResult, handleAuthResult);
+
+        function handleSDKReady() {
+            initialized = true;
+            logMessage("VoxImplant SDK ready");
+            // Connection with VoxImplant Cloud can be established now
+            voxImplant.connect();
+        }
+
+        function handleConnectionEstablished() {
+            connected = true;            
+            login();
+            logMessage("Connection established");
+        }
+
+        function handleAuthResult(e) {
+            logMessage("AuthResult: " + e.result);
+            if (e.result) {
+                // Logged in successfully
+                loggedIn = true;
+                makeCall();
+            } else {
+                logMessage("Authorization failed. Please specify correct username and password");
+            }
+        }
+
+        function login() {
+            // Authorization required before we can use other functions
+            voxImplant.login("user1@click2call.tararonis.n4.voximplant.com", "123456");
+        }
+
+        function logMessage(msg) {
+            document.getElementById("log").innerHTML += msg + "\n";
+        }
+
+        function makeCall() {
+            // Specify your number here - Application Rule Pattern describes which VoxEngine scenario should be launched
+            call = voxImplant.call("+79520549127");
+            // Add event listeners for call events
+            call.addEventListener(VoxImplant.CallEvents.Connected, handleCallConnected);
+            call.addEventListener(VoxImplant.CallEvents.Failed, handleCallFailed);
+            call.addEventListener(VoxImplant.CallEvents.Disconnected, handleCallDisconnected);
+
+        }
+
+        //	function hangUp(){
+        // Specify your number here - Application Rule Pattern describes which VoxEngine scenario should be launched
+        // var call = voxImplant.call("+79232215017");
+        // Add event listeners for call events
+        //call.hangup();
+        //logMessage("Call hung up");
+        //document.getElementById("hangup").disabled = !document.getElementById("hangup").disabled;
+        //	}
+
+        function handleCallConnected(e) {
+            logMessage("Call Connected");
+
+            //if ( !inAction ) call.hangup();
+
+            logMessage("CallConnected: ");
+            document.getElementById("hangup_btn").disabled = !document.getElementById("hangup_btn").disabled;
+            document.getElementById("hangup_btn").onclick = function (e) {
+                logMessage("Hangup pressed");
+                call.hangup();
+            };
+        }
+
+        function hangup(e) {
+            logMessage("Hangup pressed");
+            e.call.hangup();
+
+        }
+
+        function handleCallFailed(e) {
+            logMessage("Call Failed. Code: " + e.code + " Reason: " + e.reason);
+            document.getElementById("hangup_btn").disabled = "true";
+        }
+
+        function handleCallDisconnected() {
+            logMessage("Call Disconnected");
+            document.getElementById("hangup_btn").disabled = "true";
+        }
+
+        function testCall(action) {
+
+            // Initialize SDK if not it's not initialized yet
+            if (!initialized) voxImplant.init({ micRequired: true });
+            else {
+                // Establish connection with VoxImplant Cloud if it's not established yet
+                if (!voxImplant.connected()) voxImplant.connect();
+                else {
+                    // Login if not logged in yet, otherwise - make a call
+                    if (!loggedIn) login();
+                    else makeCall();
+                }
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <!--	<a href="javascript:testCall()">Make Call</a><br/>  -->
+    <button id="call" onclick="javascript:testCall()">Call partner support</button>
+    <button id="hangup_btn" disabled="true">Hang up</button>
+    <textarea id="log" style="width=400px"></textarea>
+
+
+    <!-- Insert before the closing body tag -->
+    <script src="https://kit-eu.voximplant.com/vox-kit-widget.js"></script>
+
+
+    <!-- Insert before the closing body tag -->
+    <script>window.VoxKitWidgetSettings = {
+            host: 'kit-im-eu.voximplant.com',
+            channel_uuid: 'd641220f-476d-4b5d-9f46-bf853dc7b6ec',
+            token: 'eefc66551302213200c673cbf84967e4'
+        };
+    </script>
+
+    <script>var l = function () { var t = function () { "object" == typeof VoxKitWidget && "object" == typeof VoxKitWidgetSettings && VoxKitWidget.init(VoxKitWidgetSettings) }, e = document.createElement("script"); e.type = "text/javascript", e.async = !0, e.src = "https://kit-eu.voximplant.com/static/widgets/web-chat.js?" + (new Date).valueOf(), e.readyState ? e.onreadystatechange = function () { "loaded" !== e.readyState && "complete" !== e.readyState || (e.onreadystatechange = null, t()) } : e.onload = function () { t() }; var a = document.getElementsByTagName("script")[0]; a.parentNode.insertBefore(e, a) }; window.attachEvent ? window.attachEvent("onload", l) : window.addEventListener("load", l, !1);
+    </script>
+
+</body>
+
+</html>
